@@ -12,6 +12,7 @@ app.service('Auth', function($http, $q) {
     return $http.post('/api/users/login', userObj)
       .then(res => {
         return this.getProfile();
+        // return this.getMessages();
       });
   };
 
@@ -34,7 +35,28 @@ app.service('Auth', function($http, $q) {
         return $q.reject(res.data);
       });
   };
+});
+
+app.service('Message', function($http) {
+  this.get = () => {
+    return $http.get('/api/messages');
+  }
+  this.update = message => {
+    return $http.put(`/api/messages/${message._id}`, message);
+  };
 
 });
 
-
+//
+// this.getMessages = () => {
+//   return $http.get('/api/messages')
+//     .then(res => {
+//       this.allMessages = res.data;
+//       return $q.resolve(res.data);
+//     })
+//     .catch(res => {
+//       this.allMessages = null;
+//       return $q.reject(res.data);
+//     });
+// };
+//

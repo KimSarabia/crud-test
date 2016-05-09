@@ -33,6 +33,20 @@ app.config(function($stateProvider, $urlRouterProvider) {
         }
       }
     })
+    .state('messages', {
+      url: '/messages',
+      templateUrl: '/html/messages.html',
+      controller: 'messageCtrl',
+      resolve: {
+        messages: function(Auth, $q, $state) {
+          return Auth.getMessages()
+          .catch(() => {
+            $state.go('home');
+            return $q.reject();
+          });
+        }
+      }
+    })
 
   $urlRouterProvider.otherwise('/');
 });

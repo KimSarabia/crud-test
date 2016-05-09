@@ -83,17 +83,20 @@ userSchema.statics.like = function(userId, messageId, cb) {
     Message.findById(messageId, (err2, message) => {
       if(err1 || err2) return cb(err1 || err2);
 
-      var alreadyLiked = message.likes.indexOf(user._id) !== -1;
+      var userLikedMessage = message.likes.indexOf(user._id) !== -1;
+      var messageLikedByUser= user.likes.indexOf(message._id) !== -1;
 
-      if(alreadyLiked) {
+
+      if(userLikedMessage || messageLikedByUser) {
         return cb({error: "You already like this!"});
       }
 
-      user1.friends.push(user2._id);
-      user2.friends.push(user1._id);
+      user.likes.push(message._id);
+      message.likes.push(user._id);
 
-      user1.save((err1) => {
-        user2.save((err2) => {
+
+      user.save((err1) => {
+        message.save((err2) => {
           cb(err1 || err2);
         });
       });
@@ -101,27 +104,41 @@ userSchema.statics.like = function(userId, messageId, cb) {
   });
 };
 
-userSchema.statics.unfriendify = function(user1Id, user2Id, cb) {
-  User.findById(user1Id, (err1, user1) => {
-    User.findById(user2Id, (err2, user2) => {
+userSchema.statics.unlike = function(userId, messageId, cb) {
+  User.findById(userId, (err1, user) => {
+    Message.findById(messageId, (err2, message) => {
       if(err1 || err2) return cb(err1 || err2);
 
-      user1.friends = user1.friends.filter(friendId => {
-        return friendId.toString() !== user2._id.toString();
+      user.likes = user.likes.filter(likeId => {
+        return likeId.toString() !== message._id.toString();
       });
 
-      user2.friends = user2.friends.filter(friendId => {
-        return friendId.toString() !== user1._id.toString();
+      message.likes = message.likes.filter(likeId => {
+        return likeId.toString() !== user._id.toString();
       });
 
-      user1.save((err1) => {
-        user2.save((err2) => {
+      user.save((err1) => {
+        message.save((err2) => {
           cb(err1 || err2);
         });
       });
 
     });
   });
+};
+
+userSchema.statics.addMessage = function(userId, messageId, cb) {
+  User.findById(userId, (err, user) => {
+    if(err) return cb(err);
+
+    var message = user.messages.filter(message => message._id.toString() === messageId)[0];
+
+    if(!message) {
+      return cb({error: 'Message not found'});
+    }
+
+    message.add(cb);
+  }).populate('messages');
 };
 
 

@@ -4,7 +4,7 @@ var mongoose = require('mongoose');
 
 var messageSchema = new mongoose.Schema({
   message: { type: String, required: true },
-  author: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   likes: { type: Number, default: 0 },
   timestamps: { type: Date }
 });

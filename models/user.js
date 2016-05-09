@@ -13,7 +13,8 @@ if(!JWT_SECRET) {
 
 var userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
-  password: { type: String, required: true }
+  password: { type: String, required: true },
+  messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }]
 });
 
 // IT'S MIDDLEWARE!!
@@ -56,10 +57,6 @@ userSchema.statics.register = function(userObj, cb) {
 };
 
 userSchema.statics.authenticate = function(userObj, cb) {
-  // find the user by the username
-  // confirm the password
-
-  // if user is found, and password is good, create a token
   this.findOne({username: userObj.username}, (err, dbUser) => {
     if(err || !dbUser) return cb(err || { error: 'Login failed. Username or password incorrect.' });
 
@@ -81,7 +78,53 @@ userSchema.methods.makeToken = function() {
   return token;
 };
 
+userSchema.statics.like = function(userId, messageId, cb) {
+  User.findById(userId, (err1, user) => {
+    Message.findById(messageId, (err2, message) => {
+      if(err1 || err2) return cb(err1 || err2);
+
+      var alreadyLiked = message.likes.indexOf(user._id) !== -1;
+
+      if(alreadyLiked) {
+        return cb({error: "You already like this!"});
+      }
+
+      user1.friends.push(user2._id);
+      user2.friends.push(user1._id);
+
+      user1.save((err1) => {
+        user2.save((err2) => {
+          cb(err1 || err2);
+        });
+      });
+    });
+  });
+};
+
+userSchema.statics.unfriendify = function(user1Id, user2Id, cb) {
+  User.findById(user1Id, (err1, user1) => {
+    User.findById(user2Id, (err2, user2) => {
+      if(err1 || err2) return cb(err1 || err2);
+
+      user1.friends = user1.friends.filter(friendId => {
+        return friendId.toString() !== user2._id.toString();
+      });
+
+      user2.friends = user2.friends.filter(friendId => {
+        return friendId.toString() !== user1._id.toString();
+      });
+
+      user1.save((err1) => {
+        user2.save((err2) => {
+          cb(err1 || err2);
+        });
+      });
+
+    });
+  });
+};
+
+
 var User = mongoose.model('User', userSchema);
 
 module.exports = User;
-
